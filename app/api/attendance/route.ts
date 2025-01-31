@@ -114,14 +114,14 @@ export async function GET(req: NextRequest, res: NextResponse) {
   const month = searchParams.get("month");
   const year = searchParams.get("year");
 
-  const cacheKey = `attendance:${standard}:${className}`;
+  // const cacheKey = `attendance:${standard}:${className}`;
 
   // Check if the data is already in the cache
-  const cachedData = await redis.get(cacheKey);
-  if (cachedData) {
-    console.log("Cache hit");
-    return NextResponse.json(cachedData);
-  }
+  // const cachedData = await redis.get(cacheKey);
+  // if (cachedData) {
+  //   console.log("Cache hit");
+  //   return NextResponse.json(cachedData);
+  // }
 
   if (!standard || !className || !month || !year) {
     return NextResponse.json("missing parameter");
@@ -165,11 +165,13 @@ export async function GET(req: NextRequest, res: NextResponse) {
     });
 
     // Cache the data for future requests
-    await redis.set(cacheKey, JSON.stringify(mergedRecords), { ex: 864000 }); // 10 days cache
+    // await redis.set(cacheKey, JSON.stringify(mergedRecords), { ex: 864000 }); // 10 days cache
 
     return NextResponse.json(mergedRecords);
   } catch (error) {
     console.error("Error fetching attendance data:", error);
     return NextResponse.error();
+  } finally {
+    await prisma.$disconnect();
   }
 }
