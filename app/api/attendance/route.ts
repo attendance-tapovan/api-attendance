@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    parsedDate.setHours(0, 0, 0, 0);
+
     const attendanceRecords = attendance.map((record) => ({
       date: parsedDate,
       standard: Number.parseInt(standard),
