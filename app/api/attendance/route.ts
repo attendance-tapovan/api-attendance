@@ -130,10 +130,10 @@ export async function GET(req: NextRequest, res: NextResponse) {
     return NextResponse.json("missing parameter");
   }
 
-  const startDate = new Date(Number(year), Number(month), 2);
+  const startDate = new Date(Number(year), Number(month), 1);
   startDate.setUTCHours(0, 0, 0, 0); 
 
-  const endDate = new Date(Number(year), Number(month) + 1, 1);
+  const endDate = new Date(Number(year), Number(month) + 1, 0);
   endDate.setUTCHours(0, 0, 0, 0); 
 
   try {
