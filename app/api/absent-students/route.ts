@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 async function fetchStudentsData(studentIds: number[]) {
   try {
     const response = await fetch(
-      `http://localhost:3000/api/students/batch?ids=${studentIds.join(",")}`
+      `https://tapovanmarks.vercel.app/api/students/batch?ids=${studentIds.join(",")}`
     );
     if (!response.ok) {
       throw new Error(`Failed to fetch student data`);
