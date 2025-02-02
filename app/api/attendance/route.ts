@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { date, standard, class: classParam, attendance } = data;
+    console.log("date", date);
 
     if (!date || !standard || !classParam || !Array.isArray(attendance)) {
       console.error("Missing required fields:", {
@@ -42,19 +43,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const parsedDate = new Date(date);
-    if (isNaN(parsedDate.getTime())) {
-      console.error("Invalid date:", date);
-      return NextResponse.json(
-        { success: false, error: "Invalid date format" },
-        { status: 400 }
-      );
-    }
+    // const parsedDate = new Date(date);
+    // if (isNaN(parsedDate.getTime())) {
+    //   console.error("Invalid date:", date);
+    //   return NextResponse.json(
+    //     { success: false, error: "Invalid date format" },
+    //     { status: 400 }
+    //   );
+    // }
 
-    parsedDate.setHours(0, 0, 0, 0);
+    // parsedDate.setHours(0, 0, 0, 0);
 
     const attendanceRecords = attendance.map((record) => ({
-      date: parsedDate,
+      date: new Date(date),
       standard: Number.parseInt(standard),
       class: classParam,
       studentId: record.studentId,
@@ -129,8 +130,11 @@ export async function GET(req: NextRequest, res: NextResponse) {
     return NextResponse.json("missing parameter");
   }
 
-  const startDate = new Date(Number(year), Number(month), 1);
-  const endDate = new Date(Number(year), Number(month) + 1, 0);
+  const startDate = new Date(Number(year), Number(month), 2);
+  startDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
+
+  const endDate = new Date(Number(year), Number(month) + 1, 1);
+  endDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
 
   try {
     const result = await prisma.attendance.findMany({
