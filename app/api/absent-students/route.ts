@@ -33,10 +33,10 @@ export async function GET(request: Request) {
       );
     }
 
-    const startDate = new Date(Number(year), Number(month), 2);
+    const startDate = new Date(Number(year), Number(month), 1);
     startDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
 
-    const endDate = new Date(Number(year), Number(month) + 1, 1);
+    const endDate = new Date(Number(year), Number(month) + 1, 0);
     endDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
 
     //date time make zero set
