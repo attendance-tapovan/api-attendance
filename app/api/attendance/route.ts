@@ -131,10 +131,10 @@ export async function GET(req: NextRequest, res: NextResponse) {
   }
 
   const startDate = new Date(Number(year), Number(month), 2);
-  startDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
+  startDate.setUTCHours(0, 0, 0, 0); 
 
   const endDate = new Date(Number(year), Number(month) + 1, 1);
-  endDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
+  endDate.setUTCHours(0, 0, 0, 0); 
 
   try {
     const result = await prisma.attendance.findMany({
