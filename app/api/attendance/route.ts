@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getStudent } from "@/app/action";
-import { redis } from "@/lib/redis";
+
 
 interface AttendanceData {
   date: string;
@@ -80,9 +80,7 @@ export async function POST(request: NextRequest) {
         })
       )
     );
-    const cacheKey = `attendance:${standard}:${classParam}`;
-    await redis.del(cacheKey);
-
+    
     return NextResponse.json(
       { success: true, message: "Attendance marked successfully" },
       { status: 200 }
