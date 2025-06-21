@@ -23,21 +23,30 @@ async function fetchStudentsData(studentIds: number[]) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const month = Number.parseInt(searchParams.get("month") || "");
-    const year = Number.parseInt(searchParams.get("year") || "");
+    const start = searchParams.get("startDate") || "";
+    const end = searchParams.get("endDate") || "";
 
-    if (isNaN(month) || isNaN(year)) {
+    console.log("start", start);
+    console.log("end", end);
+    if (!start || !end || isNaN(Number(start)) || isNaN(Number(end))) {
       return NextResponse.json(
-        { error: "Invalid month or year parameters" },
+        { error: "Invalid startDate or endDate parameters" },
         { status: 400 }
       );
     }
 
-    const startDate = new Date(Number(year), Number(month), 1);
-    startDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
+    // Convert timestamps to Date objects, set time to midnight, and add one day
+    const startDate = new Date(Number(start));
+    const endDate = new Date(Number(end));
 
-    const endDate = new Date(Number(year), Number(month) + 1, 0);
-    endDate.setUTCHours(0, 0, 0, 0); // Set absolute UTC midnight
+    // Set time to midnight (00:00:00)
+    startDate.setUTCHours(0, 0, 0, 0);
+    endDate.setUTCHours(0, 0, 0, 0);
+
+    // Add one day to both dates
+
+    console.log("startDate", startDate);
+    console.log("endDate", endDate);
 
     //date time make zero set
 
@@ -106,7 +115,6 @@ export async function GET(request: Request) {
     );
   }
 }
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
