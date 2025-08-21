@@ -25,9 +25,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const start = searchParams.get("startDate") || "";
     const end = searchParams.get("endDate") || "";
+    const std = searchParams.get("standard") || "";
+    const className = searchParams.get("className") || "";
 
-    console.log("start", start);
-    console.log("end", end);
     if (!start || !end || isNaN(Number(start)) || isNaN(Number(end))) {
       return NextResponse.json(
         { error: "Invalid startDate or endDate parameters" },
@@ -35,76 +35,49 @@ export async function GET(request: Request) {
       );
     }
 
-    // Convert timestamps to Date objects, set time to midnight, and add one day
     const startDate = new Date(Number(start));
     const endDate = new Date(Number(end));
 
-    // Set time to midnight (00:00:00)
     startDate.setUTCHours(0, 0, 0, 0);
     endDate.setUTCHours(0, 0, 0, 0);
 
-    // Add one day to both dates
-
-    console.log("startDate", startDate);
-    console.log("endDate", endDate);
-
-    //date time make zero set
-
-    // Fetch absent students for the specified month and year
-    const absentRecords = await prisma.attendance.findMany({
-      where: {
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-        status: "A",
+    // Build dynamic where condition
+    const whereClause: any = {
+      date: {
+        gte: startDate,
+        lte: endDate,
       },
-      // Remove the orderBy clause here as we'll sort manually
-    });
-
-    // Extract unique student IDs
-    const studentIds = [
-      ...new Set(absentRecords.map((record) => record.studentId)),
-    ];
-
-    // Fetch all required student data in a single API call
-    const studentsData = await fetchStudentsData(studentIds);
-
-    const absentStudents = absentRecords.map((record) => {
-      const studentData = studentsData[record.studentId] || {};
-      return {
-        id: record.id,
-        date: record.date.toISOString(),
-        studentId: record.studentId,
-        rollNo: studentData.rollNo || "N/A",
-        name: studentData.name || "Unknown",
-        standard: studentData.currentStandard || "N/A",
-        class: studentData.currentClass || "N/A",
-        reason: record.reason,
-      };
-    });
-
-    // Custom sorting function
-    const sortAbsentStudents = (a: any, b: any) => {
-      // Convert standard to number if possible, otherwise use string
-      const standardA = isNaN(Number(a.standard))
-        ? a.standard
-        : Number(a.standard);
-      const standardB = isNaN(Number(b.standard))
-        ? b.standard
-        : Number(b.standard);
-
-      // Sort by standard
-      if (standardA !== standardB) {
-        return standardA < standardB ? -1 : 1;
-      }
-
-      // If standards are the same, sort by class
-      return a.class.localeCompare(b.class);
+      status: "A",
     };
 
-    // Apply the custom sorting
-    absentStudents.sort(sortAbsentStudents);
+    if (std) {
+      whereClause.standard = Number(std);
+    }
+
+    if (className) {
+      whereClause.class = className;
+    }
+
+    const absentRecords = await prisma.attendance.findMany({
+      where: whereClause,
+    });
+
+    const absentStudents = absentRecords.map((record) => ({
+      id: record.id,
+      date: record.date.toISOString(),
+      studentId: record.studentId,
+      standard: record.standard,
+      class: record.class,
+      reason: record.reason,
+    }));
+
+    // Sorting
+    absentStudents.sort((a: any, b: any) => {
+      if (a.standard !== b.standard) {
+        return a.standard - b.standard;
+      }
+      return a.class.localeCompare(b.class);
+    });
 
     return NextResponse.json(absentStudents);
   } catch (error) {
@@ -115,6 +88,7 @@ export async function GET(request: Request) {
     );
   }
 }
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
