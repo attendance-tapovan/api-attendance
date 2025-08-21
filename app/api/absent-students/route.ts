@@ -61,23 +61,34 @@ export async function GET(request: Request) {
     const absentRecords = await prisma.attendance.findMany({
       where: whereClause,
     });
+    const studentIds = [ ...new Set(absentRecords.map((record) => record.studentId)), ];
+    const studentsData = await fetchStudentsData(studentIds);
 
-    const absentStudents = absentRecords.map((record) => ({
-      id: record.id,
-      date: record.date.toISOString(),
-      studentId: record.studentId,
-      standard: record.standard,
-      class: record.class,
-      reason: record.reason,
-    }));
+    const absentStudents = absentRecords.map((record) => { 
+      const studentData = studentsData[record.studentId] || {}; 
+      return {
+        id: record.id, 
+        date: record.date.toISOString(), 
+        studentId: record.studentId, 
+        rollNo: studentData.rollNo || "N/A", 
+        name: studentData.name || "Unknown",
+        standard: studentData.currentStandard || "N/A", 
+        class: studentData.currentClass || "N/A",
+        reason: record.reason, }; 
+    });
 
     // Sorting
-    absentStudents.sort((a: any, b: any) => {
-      if (a.standard !== b.standard) {
-        return a.standard - b.standard;
-      }
-      return a.class.localeCompare(b.class);
-    });
+   const sortAbsentStudents = (a: any, b: any) => { // Convert standard to number if possible, otherwise use string 
+     const standardA = isNaN(Number(a.standard)) ? a.standard : Number(a.standard); 
+     const standardB = isNaN(Number(b.standard)) ? b.standard : Number(b.standard); 
+     // Sort by standard 
+     if (standardA !== standardB) { 
+       return standardA < standardB ? -1 : 1; 
+     } 
+     // If standards are the same, sort by class 
+     return a.class.localeCompare(b.class); 
+   };
+    absentStudents.sort(sortAbsentStudents);
 
     return NextResponse.json(absentStudents);
   } catch (error) {
